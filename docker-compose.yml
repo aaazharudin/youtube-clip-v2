@@ -1,0 +1,35 @@
+services:
+  youtube-heatmap-clipper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yt-heatmap-clipper
+    ports:
+      - "8080:5000"
+    volumes:
+      # Mount output directory to host (clips will be saved here)
+      - ./clips:/app/clips
+      # Mount database directory for job persistence
+      - ./data:/app/data
+      # Optional: Mount whisper model cache for faster subsequent runs
+      # Uncomment the line below to enable model caching
+      # - whisper-cache:/root/.cache/huggingface
+    environment:
+      - PYTHONUNBUFFERED=1
+      - GUNICORN_WORKERS=2
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    command: ["gunicorn", "-c", "gunicorn_config.py", "webapp:app"]
+    restart: unless-stopped
+    # Resource limits (adjust based on your system)
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+# Optional: Named volume for model cache (uncomment if needed)
+# volumes:
+#   whisper-cache:

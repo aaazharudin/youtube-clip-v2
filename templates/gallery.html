@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clip Gallery - Video Clipper Pro</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/gallery.css" />
+  </head>
+  <body>
+    <div class="bg"></div>
+
+    <header class="top">
+      <div class="topLeft">
+        <div class="title">📬 Clip Gallery</div>
+        <div class="sub">Kelola semua hasil klip video Anda</div>
+      </div>
+      <div class="topRight">
+        <a href="/" class="btn ghost smallBtn">← Back to Creator</a>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- Stats Bar -->
+      <section class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-value" id="totalClips">0</div>
+          <div class="stat-label">Total Clips</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalSize">0 MB</div>
+          <div class="stat-label">Total Size</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="lastUpdate">-</div>
+          <div class="stat-label">Last Update</div>
+        </div>
+        <div class="stat-card actions">
+          <button id="refreshBtn" class="btn ghost smallBtn">🔄 Refresh</button>
+          <button id="downloadAllBtn" class="btn smallBtn">📥 Download All</button>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="filters">
+        <input id="searchClips" class="input" placeholder="Search clips..." />
+        <select id="sortClips" class="input">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="largest">Largest First</option>
+          <option value="smallest">Smallest First</option>
+        </select>
+        <select id="filterTag" class="input">
+          <option value="all">All Clips</option>
+          <option value="viral">🔥 Viral</option>
+          <option value="funny">😂 Funny</option>
+          <option value="tutorial">📚 Tutorial</option>
+        </select>
+      </section>
+
+      <!-- Gallery Grid -->
+      <section class="gallery-container">
+        <div id="galleryGrid" class="gallery-grid">
+          <!-- Clips will be loaded here -->
+          <div class="empty-state">
+            <div class="empty-icon">📹</div>
+            <div class="empty-title">Belum ada klip</div>
+            <div class="empty-desc">Buat klip pertama Anda dari halaman Creator</div>
+            <a href="/" class="btn">Go to Creator</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Edit Title Modal -->
+    <div id="editModal" class="modal hide">
+      <div class="modalBackdrop" onclick="closeEditModal()"></div>
+      <div class="modalCard">
+        <div class="modalHeader">
+          <h3>Edit Title</h3>
+          <button class="iconBtn" onclick="closeEditModal()">✕</button>
+        </div>
+        <div class="modalBody">
+          <input id="editTitleInput" class="input" placeholder="Masukkan judul baru..." />
+          <div class="quick-templates">
+            <div class="template-label">Quick Templates:</div>
+            <button class="template-btn" onclick="useTemplate('Momen ini NGGAKAK banget nih... 😱🔥')">
+              Momen ini NGGAKAK banget nih...
+            </button>
+            <button class="template-btn" onclick="useTemplate('Fase童 bikin MERINDING... 😂')">
+              Fase童 bikin MERINDING...
+            </button>
+            <button class="template-btn" onclick="useTemplate('Gak nyangka bisa segitunya... 🤯')">
+              Gak nyangka bisa segitunya...
+            </button>
+            <button class="template-btn" onclick="useTemplate('Dibandingin sama ini mah... 🤔')">
+              Dibandingin sama ini mah...
+            </button>
+          </div>
+          <div class="modalActions">
+            <button class="btn ghost" onclick="closeEditModal()">Cancel</button>
+            <button class="btn" onclick="saveTitle()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Preview Modal -->
+    <div id="previewModal" class="video-modal hide">
+      <div class="modalBackdrop" id="previewModalBackdrop" onclick="closeVideoPreview()"></div>
+      <div class="video-modal-content">
+        <button class="close-modal-btn" onclick="closeVideoPreview()">✕</button>
+        <div class="video-wrapper">
+          <video id="previewVideo" controls autoplay playsinline preload="auto"></video>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/gallery.js"></script>
+  </body>
+</html>
