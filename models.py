@@ -67,6 +67,13 @@ class Job(Base):
     clip_titles = Column(Text, nullable=True)  # JSON array: [{"index": 1, "title": "..."}]
     source_metadata = Column(Text, nullable=True)  # JSON: {url, title, thumbnail, channel, duration}
 
+    # Upload fields
+    upload_enabled = Column(Boolean, default=False)  # Whether auto upload is enabled
+    upload_platforms = Column(Text, nullable=True)  # JSON array: ["youtube", "tiktok"]
+    upload_status = Column(Text, nullable=True)  # JSON: {"youtube": "success", "tiktok": "pending"}
+    uploaded_urls = Column(Text, nullable=True)  # JSON: {"youtube": "url", "tiktok": "url"}
+    upload_error = Column(Text, nullable=True)  # Upload error messages
+
     def to_dict(self):
         """Convert model to dictionary for API responses."""
         outputs_list = []
@@ -104,6 +111,27 @@ class Job(Base):
             except:
                 source_metadata_dict = {}
 
+        upload_platforms_list = []
+        if self.upload_platforms:
+            try:
+                upload_platforms_list = json.loads(self.upload_platforms) if self.upload_platforms else []
+            except:
+                upload_platforms_list = []
+
+        upload_status_dict = {}
+        if self.upload_status:
+            try:
+                upload_status_dict = json.loads(self.upload_status) if self.upload_status else {}
+            except:
+                upload_status_dict = {}
+
+        uploaded_urls_dict = {}
+        if self.uploaded_urls:
+            try:
+                uploaded_urls_dict = json.loads(self.uploaded_urls) if self.uploaded_urls else {}
+            except:
+                uploaded_urls_dict = {}
+
         return {
             "id": self.id,
             "status": self.status,
@@ -125,6 +153,11 @@ class Job(Base):
             "logs": logs_list,
             "clip_titles": clip_titles_list,
             "source_metadata": source_metadata_dict,
+            "upload_enabled": self.upload_enabled,
+            "upload_platforms": upload_platforms_list,
+            "upload_status": upload_status_dict,
+            "uploaded_urls": uploaded_urls_dict,
+            "upload_error": self.upload_error,
         }
 
     @staticmethod

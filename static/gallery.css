@@ -619,6 +619,597 @@
   }
 }
 
+/* Upload Status Badge */
+.upload-status {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.upload-status.uploaded {
+  background: rgba(0, 255, 0, 0.1);
+  border-color: rgba(0, 255, 0, 0.3);
+}
+
+.upload-status span {
+  color: #0f0;
+  font-weight: 600;
+}
+
+.youtube-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.youtube-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* Disabled upload button styling */
+.btn[data-action="upload-youtube"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Bulk Selection Checkbox */
+.clip-checkbox {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.clip-card.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.3);
+}
+
+/* Bulk Action Bar */
+.bulk-action-bar {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  background: rgba(0, 20, 30, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--primary);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 255, 255, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.bulk-action-bar.hide {
+  display: none;
+}
+
+.bulk-action-bar .selection-count {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 0.95rem;
+}
+
+.bulk-action-bar .divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(0, 255, 255, 0.3);
+}
+
+.bulk-action-bar .btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+}
+
+/* Upload Progress Modal - Modern Popup Design */
+.upload-progress-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  animation: fadeInBackdrop 0.3s ease;
+}
+
+@keyframes fadeInBackdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.upload-progress-modal.hide {
+  display: none;
+}
+
+.upload-progress-container {
+  position: relative;
+  width: 100%;
+  max-width: 650px;
+  max-height: 85vh;
+  background: linear-gradient(145deg, rgba(10, 25, 35, 0.95), rgba(5, 15, 25, 0.98));
+  border: 2px solid rgba(0, 255, 255, 0.4);
+  border-radius: 24px;
+  box-shadow: 
+    0 30px 80px rgba(0, 255, 255, 0.15),
+    0 0 0 1px rgba(0, 255, 255, 0.1) inset,
+    0 0 40px rgba(0, 255, 255, 0.1);
+  overflow: hidden;
+  animation: popupIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.upload-progress-header {
+  padding: 2rem 2rem 1.5rem;
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.08), rgba(0, 200, 255, 0.04));
+  border-bottom: 2px solid rgba(0, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.upload-progress-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--primary), 
+    var(--accent-secondary),
+    var(--primary),
+    transparent
+  );
+  animation: shimmerTop 3s linear infinite;
+}
+
+@keyframes shimmerTop {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.upload-progress-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.upload-progress-header .close-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 100, 100, 0.1);
+  border: 1px solid rgba(255, 100, 100, 0.3);
+  color: #ff6464;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  font-size: 1.3rem;
+}
+
+.upload-progress-header .close-btn:hover {
+  background: rgba(255, 100, 100, 0.2);
+  border-color: #ff6464;
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 0 20px rgba(255, 100, 100, 0.3);
+}
+
+.upload-progress-body {
+  max-height: calc(85vh - 180px);
+  overflow-y: auto;
+  padding: 1.5rem 2rem 2rem;
+}
+
+/* Custom scrollbar for modal */
+.upload-progress-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.upload-progress-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.upload-progress-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary), var(--accent-secondary));
+  border-radius: 4px;
+}
+
+.upload-progress-body::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+.upload-item {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  border: 2px solid rgba(0, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: rgba(0, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.upload-item.uploading {
+  border-color: rgba(0, 255, 255, 0.5);
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.08), rgba(0, 200, 255, 0.04));
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.15);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.upload-item.uploading::before {
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  animation: slideUpDown 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.25);
+  }
+}
+
+@keyframes slideUpDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+}
+
+.upload-item.completed {
+  border-color: rgba(0, 255, 100, 0.5);
+  background: linear-gradient(135deg, rgba(0, 255, 100, 0.08), rgba(0, 200, 100, 0.04));
+  box-shadow: 0 0 20px rgba(0, 255, 100, 0.1);
+}
+
+.upload-item.completed::before {
+  background: #00ff88;
+  box-shadow: 0 0 10px #00ff88;
+}
+
+.upload-item.failed {
+  border-color: rgba(255, 100, 100, 0.5);
+  background: linear-gradient(135deg, rgba(255, 100, 100, 0.08), rgba(255, 50, 50, 0.04));
+  box-shadow: 0 0 20px rgba(255, 100, 100, 0.1);
+}
+
+.upload-item.failed::before {
+  background: #ff6464;
+  box-shadow: 0 0 10px #ff6464;
+}
+
+.upload-item-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.upload-item-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px currentColor);
+  animation: iconFloat 2s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.upload-item.uploading .upload-item-icon {
+  animation: iconSpin 2s linear infinite;
+}
+
+@keyframes iconSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.upload-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-item-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.35rem;
+}
+
+.upload-item-status {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.upload-item.uploading .upload-item-status {
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.upload-item.completed .upload-item-status {
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.upload-item.failed .upload-item-status {
+  color: #ff6464;
+  text-shadow: 0 0 10px rgba(255, 100, 100, 0.5);
+}
+
+.upload-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.upload-item-actions .btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+/* Progress Bar - Modern Design */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 0.75rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) inset;
+  position: relative;
+}
+
+.progress-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  animation: shimmerBg 2s linear infinite;
+}
+
+@keyframes shimmerBg {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, 
+    #00d4ff, 
+    #00ffaa,
+    #00d4ff
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 255, 0.6),
+    0 0 10px rgba(0, 255, 170, 0.4) inset;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  animation: shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.progress-bar-fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.3), 
+    transparent
+  );
+  border-radius: 10px 10px 0 0;
+}
+
+.upload-item-error {
+  font-size: 0.8rem;
+  color: #ff6464;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 100, 100, 0.15);
+  border-radius: 10px;
+  border-left: 4px solid #ff6464;
+  box-shadow: 0 0 15px rgba(255, 100, 100, 0.2);
+  animation: errorPulse 2s ease-in-out infinite;
+}
+
+@keyframes errorPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 100, 100, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 100, 100, 0.3);
+  }
+}
+
+/* Summary Stats Box */
+.upload-summary {
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.08), rgba(0, 200, 255, 0.04));
+  border: 2px solid rgba(0, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
+}
+
+.upload-summary-title {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.upload-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+}
+
+.upload-summary-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.upload-summary-stat.queued {
+  color: var(--muted);
+}
+
+.upload-summary-stat.uploading {
+  color: var(--primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.upload-summary-stat.completed {
+  color: #00ff88;
+}
+
+.upload-summary-stat.failed {
+  color: #ff6464;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .stats-bar {

@@ -26,6 +26,7 @@ COPY webapp.py .
 COPY models.py .
 COPY gallery_manager.py .
 COPY ai_title_generator.py .
+COPY upload_service.py .
 COPY gunicorn_config.py .
 COPY templates/ templates/
 COPY static/ static/

@@ -153,6 +153,40 @@
           <div class="help" data-i18n="help.subtitle_fontsdir">Folder berisi file font .ttf/.otf. Default: <code>fonts</code></div>
         </div>
 
+        <!-- Auto Upload Settings -->
+        <div class="uploadSection">
+          <div class="sectionTitle">
+            <span data-i18n="label.auto_upload">🚀 Auto Upload (Beta)</span>
+          </div>
+          
+          <div class="row">
+            <label class="checkbox">
+              <input id="upload_enabled" type="checkbox" />
+              <span data-i18n="label.enable_upload">Enable auto upload after clip creation</span>
+            </label>
+            <div class="help" data-i18n="help.upload_enabled">Otomatis upload ke platform yang dipilih setelah clip jadi.</div>
+          </div>
+
+          <div id="uploadPlatformsWrap" class="hide">
+            <div class="row">
+              <label class="label" data-i18n="label.upload_platforms">Upload to:</label>
+              <div class="platformChecks">
+                <label class="checkbox">
+                  <input id="platform_youtube" type="checkbox" value="youtube" checked />
+                  <span>YouTube Shorts</span>
+                </label>
+                <label class="checkbox">
+                  <input id="platform_tiktok" type="checkbox" value="tiktok" disabled title="Coming soon" />
+                  <span>TikTok (Coming Soon)</span>
+                </label>
+              </div>
+              <div class="help" data-i18n="help.upload_platforms">
+                ⚙️ YouTube requires OAuth setup. See <a href="/static/YOUTUBE_SETUP.md" target="_blank">setup guide</a>.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="row">
           <label class="label" data-i18n="label.title_mode">Title Mode</label>
           <div class="toggleGroup">

@@ -2,6 +2,7 @@
 
 let allClips = [];
 let currentEditingClipId = null;
+let selectedClips = new Set(); // Track selected clips for bulk upload
 
 // DOM Elements
 const galleryGrid = document.getElementById('galleryGrid');
@@ -138,6 +139,9 @@ function renderGallery() {
 function createClipCard(clip) {
   const card = document.createElement('div');
   card.className = 'clip-card';
+  if (selectedClips.has(clip.id)) {
+    card.classList.add('selected');
+  }
   // Store clip data on the card element for safe access
   card.dataset.clipId = clip.id;
   card.dataset.clipFilename = clip.filename;
@@ -152,9 +156,27 @@ function createClipCard(clip) {
   ).join('');
 
   const videoId = `video-${clip.id}`;
+  
+  // Upload status badge
+  let uploadStatusHtml = '';
+  if (clip.uploaded_to_youtube) {
+    uploadStatusHtml = `
+      <div class="upload-status uploaded" title="Uploaded to YouTube">
+        <span>✅ Uploaded to YouTube</span>
+        ${clip.youtube_url ? `<a href="${clip.youtube_url}" target="_blank" class="youtube-link">🔗 Buka Video</a>` : ''}
+      </div>
+    `;
+  }
 
   card.innerHTML = `
     <div class="clip-thumbnail">
+      ${!clip.uploaded_to_youtube ? `
+        <input type="checkbox" 
+          class="clip-checkbox" 
+          ${selectedClips.has(clip.id) ? 'checked' : ''}
+          onchange="toggleClipSelection('${clip.id}', event)"
+          onclick="event.stopPropagation()">
+      ` : ''}
       <video id="${videoId}" src="${videoUrl}" preload="metadata" playsinline></video>
       <div class="video-overlay">
         <button class="play-btn" data-action="play" data-video-id="${videoId}">▶️</button>
@@ -175,8 +197,12 @@ function createClipCard(clip) {
       <div class="clip-source" title="${escapeHtml(clip.source_title || '')}">
         ${escapeHtml(clip.source_title || 'Unknown Source')}
       </div>
+      ${uploadStatusHtml}
       ${tagsHtml ? `<div class="clip-tags">${tagsHtml}</div>` : ''}
       <div class="clip-actions">
+        <button class="btn icon" data-action="upload-youtube" data-clip-id="${clip.id}" title="${clip.uploaded_to_youtube ? 'Already uploaded to YouTube' : 'Upload to YouTube Shorts'}" ${clip.uploaded_to_youtube ? 'disabled' : ''}>
+          ${clip.uploaded_to_youtube ? '✅' : '📤'}
+        </button>
         <button class="btn icon" data-action="delete" data-clip-id="${clip.id}" title="Delete">🗑️</button>
         <button class="btn icon" data-action="edit" data-clip-id="${clip.id}" title="Edit Title">✏️</button>
         <a href="${downloadUrl}" download class="btn">⬇️ Download</a>
@@ -236,6 +262,9 @@ function createClipCard(clip) {
       const clipId = btn.dataset.clipId;
 
       switch (action) {
+        case 'upload-youtube':
+          uploadToYouTube(clipId);
+          break;
         case 'delete':
           deleteClip(clipId);
           break;
@@ -556,7 +585,15 @@ function escapeHtml(text) {
 // Show error message
 function showError(message) {
   // Simple alert for now, could be enhanced with toast notification
-  alert(message);
+  alert('❌ ' + message);
+}
+
+function showSuccess(message) {
+  alert('✅ ' + message);
+}
+
+function showInfo(message) {
+  alert('ℹ️ ' + message);
 }
 
 // Open edit modal
@@ -639,6 +676,553 @@ async function deleteClip(clipId) {
   } catch (error) {
     console.error('Failed to delete clip:', error);
     showError('Gagal menghapus klip');
+  }
+}
+
+// Upload clip to YouTube
+// Debounce tracker untuk prevent double upload
+const uploadingClips = new Set();
+
+async function uploadToYouTube(clipId) {
+  const clip = allClips.find(c => c.id === clipId);
+  if (!clip) {
+    showError('Clip not found');
+    return;
+  }
+  
+  // PREVENT DOUBLE UPLOAD: Check if already uploading
+  if (uploadingClips.has(clipId)) {
+    alert('⏳ Upload sedang berjalan...\n\nSilakan tunggu sampai selesai.');
+    return;
+  }
+  
+  // Check if already uploaded
+  if (clip.uploaded_to_youtube) {
+    if (clip.youtube_url) {
+      if (confirm('Clip sudah di-upload ke YouTube.\n\nBuka video sekarang?')) {
+        window.open(clip.youtube_url, '_blank');
+      }
+    } else {
+      alert('Clip sudah di-upload ke YouTube.');
+    }
+    return;
+  }
+
+  if (!confirm(`Upload "${clip.title}" ke YouTube Shorts?\n\nPastikan OAuth sudah setup.`)) {
+    return;
+  }
+
+  // Find the upload button and disable it
+  const uploadBtn = document.querySelector(`[data-action="upload-youtube"][data-clip-id="${clipId}"]`);
+  const originalText = uploadBtn ? uploadBtn.innerHTML : '';
+  
+  // Mark as uploading
+  uploadingClips.add(clipId);
+  
+  try {
+    // Show loading state
+    if (uploadBtn) {
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '⏳';
+      uploadBtn.title = 'Uploading... Tunggu 1-2 menit';
+    }
+    
+    const response = await fetch(`/api/gallery/${clipId}/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        platforms: ['youtube']
+      })
+    });
+
+    const data = await response.json();
+    if (data.ok) {
+      const result = data.result;
+      if (result.youtube && result.youtube.success) {
+        // Success!
+        const url = result.youtube.url;
+        
+        // Update local clip data
+        clip.uploaded_to_youtube = true;
+        clip.youtube_url = url;
+        
+        // Refresh gallery to show updated status
+        renderGallery();
+        
+        // Show success message with clickable link
+        const openNow = confirm(
+          '✅ BERHASIL DI-UPLOAD!\n\n' +
+          `Video "${clip.title}" sudah live di YouTube Shorts!\n\n` +
+          `URL: ${url}\n\n` +
+          `Klik OK untuk membuka video sekarang.`
+        );
+        
+        if (openNow) {
+          window.open(url, '_blank');
+        }
+      } else {
+        const error = result.youtube?.error || 'Upload failed';
+        
+        // Reset button
+        if (uploadBtn) {
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = originalText;
+          uploadBtn.title = 'Upload to YouTube Shorts';
+        }
+        
+        alert(
+          '❌ UPLOAD GAGAL\n\n' +
+          `Error: ${error}\n\n` +
+          `Coba lagi atau periksa OAuth setup di YOUTUBE_SETUP.md`
+        );
+      }
+    } else {
+      // Reset button
+      if (uploadBtn) {
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = originalText;
+        uploadBtn.title = 'Upload to YouTube Shorts';
+      }
+      
+      alert(
+        '❌ UPLOAD GAGAL\n\n' +
+        `Error: ${data.error}\n\n` +
+        `Coba lagi atau periksa OAuth setup.`
+      );
+    }
+  } catch (error) {
+    console.error('Failed to upload:', error);
+    
+    // Reset button
+    if (uploadBtn) {
+      uploadBtn.disabled = false;
+      uploadBtn.innerHTML = originalText;
+      uploadBtn.title = 'Upload to YouTube Shorts';
+    }
+    
+    alert(
+      '❌ ERROR\n\n' +
+      `${error.message}\n\n` +
+      `Periksa koneksi internet atau coba lagi.`
+    );
+  } finally {
+    // ALWAYS remove from uploading set
+    uploadingClips.delete(clipId);
+  }
+}
+
+// ========================================
+// BULK UPLOAD SYSTEM
+// ========================================
+
+// Upload Queue Manager
+class UploadQueue {
+  constructor(maxConcurrent = 2) {
+    this.queue = [];
+    this.uploading = new Map(); // clipId -> upload state
+    this.completed = [];
+    this.failed = [];
+    this.maxConcurrent = maxConcurrent;
+    this.isPaused = false;
+  }
+
+  add(clipId, clip) {
+    if (this.uploading.has(clipId) || this.completed.find(c => c.id === clipId)) {
+      return; // Already queued or completed
+    }
+    this.queue.push({ id: clipId, clip, addedAt: Date.now() });
+  }
+
+  addBatch(clipIds) {
+    clipIds.forEach(id => {
+      const clip = allClips.find(c => c.id === id);
+      if (clip && !clip.uploaded_to_youtube) {
+        this.add(id, clip);
+      }
+    });
+  }
+
+  async start() {
+    this.isPaused = false;
+    while (this.queue.length > 0 && !this.isPaused) {
+      // Wait if too many concurrent uploads
+      while (this.uploading.size >= this.maxConcurrent && !this.isPaused) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      if (this.isPaused) break;
+
+      const item = this.queue.shift();
+      if (item) {
+        this.uploadItem(item);
+      }
+    }
+  }
+
+  async uploadItem(item) {
+    const { id, clip } = item;
+    
+    this.uploading.set(id, {
+      clip,
+      status: 'uploading',
+      progress: 0,
+      startedAt: Date.now()
+    });
+
+    updateUploadProgressUI();
+
+    try {
+      // Simulate progress updates (estimate based on file size)
+      const progressInterval = this.simulateProgress(id, clip.file_size || 5000000);
+
+      // Actual upload
+      const response = await fetch(`/api/gallery/${id}/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platforms: ['youtube'] })
+      });
+
+      clearInterval(progressInterval);
+
+      const data = await response.json();
+      
+      if (data.ok && data.result.youtube?.success) {
+        // Success
+        this.uploading.get(id).progress = 100;
+        this.uploading.get(id).status = 'completed';
+        this.completed.push({
+          id,
+          clip,
+          url: data.result.youtube.url,
+          completedAt: Date.now()
+        });
+
+        // Update clip data
+        const clipData = allClips.find(c => c.id === id);
+        if (clipData) {
+          clipData.uploaded_to_youtube = true;
+          clipData.youtube_url = data.result.youtube.url;
+        }
+      } else {
+        // Failed
+        const error = data.result?.youtube?.error || data.error || 'Upload failed';
+        this.uploading.get(id).status = 'failed';
+        this.uploading.get(id).error = error;
+        this.failed.push({ id, clip, error, failedAt: Date.now() });
+      }
+    } catch (error) {
+      // Error
+      this.uploading.get(id).status = 'failed';
+      this.uploading.get(id).error = error.message;
+      this.failed.push({ id, clip, error: error.message, failedAt: Date.now() });
+    }
+
+    updateUploadProgressUI();
+
+    // Move to completed/failed after short delay
+    setTimeout(() => {
+      this.uploading.delete(id);
+      updateUploadProgressUI();
+    }, 2000);
+  }
+
+  simulateProgress(clipId, fileSize) {
+    // Estimate upload time based on file size (slower for larger files)
+    const estimatedTime = Math.max(30000, (fileSize / 1024 / 1024) * 10000); // ~10s per MB
+    const increment = 100 / (estimatedTime / 1000); // Progress per second
+
+    return setInterval(() => {
+      const state = this.uploading.get(clipId);
+      if (state && state.progress < 90) {
+        state.progress = Math.min(90, state.progress + increment);
+        updateUploadProgressUI();
+      }
+    }, 1000);
+  }
+
+  pause() {
+    this.isPaused = true;
+  }
+
+  resume() {
+    this.isPaused = false;
+    this.start();
+  }
+
+  clear() {
+    this.queue = [];
+    this.uploading.clear();
+    this.completed = [];
+    this.failed = [];
+  }
+
+  getStats() {
+    return {
+      queued: this.queue.length,
+      uploading: this.uploading.size,
+      completed: this.completed.length,
+      failed: this.failed.length,
+      total: this.queue.length + this.uploading.size + this.completed.length + this.failed.length
+    };
+  }
+}
+
+// Global upload queue instance
+let uploadQueue = null;
+
+// Toggle clip selection
+function toggleClipSelection(clipId, event) {
+  event.stopPropagation();
+  
+  if (selectedClips.has(clipId)) {
+    selectedClips.delete(clipId);
+  } else {
+    selectedClips.add(clipId);
+  }
+  
+  updateBulkActionBar();
+  renderGallery(); // Re-render to update visual selection
+}
+
+// Select all clips
+function selectAllClips() {
+  allClips.forEach(clip => {
+    if (!clip.uploaded_to_youtube) {
+      selectedClips.add(clip.id);
+    }
+  });
+  updateBulkActionBar();
+  renderGallery();
+}
+
+// Deselect all clips
+function deselectAllClips() {
+  selectedClips.clear();
+  updateBulkActionBar();
+  renderGallery();
+}
+
+// Update bulk action bar
+function updateBulkActionBar() {
+  let bulkBar = document.getElementById('bulkActionBar');
+  
+  if (selectedClips.size === 0) {
+    if (bulkBar) {
+      bulkBar.classList.add('hide');
+    }
+    return;
+  }
+
+  if (!bulkBar) {
+    bulkBar = document.createElement('div');
+    bulkBar.id = 'bulkActionBar';
+    bulkBar.className = 'bulk-action-bar';
+    document.body.appendChild(bulkBar);
+  }
+
+  bulkBar.className = 'bulk-action-bar';
+  bulkBar.innerHTML = `
+    <span class="selection-count">${selectedClips.size} clip${selectedClips.size > 1 ? 's' : ''} dipilih</span>
+    <div class="divider"></div>
+    <button class="btn" onclick="uploadSelectedClips()">📤 Upload ke YouTube</button>
+    <button class="btn" onclick="selectAllClips()">✅ Pilih Semua</button>
+    <button class="btn" onclick="deselectAllClips()">✖️ Batal Pilih</button>
+  `;
+}
+
+// Upload selected clips
+async function uploadSelectedClips() {
+  if (selectedClips.size === 0) {
+    alert('Tidak ada clip yang dipilih');
+    return;
+  }
+
+  // Filter out already uploaded clips
+  const clipsToUpload = Array.from(selectedClips).filter(id => {
+    const clip = allClips.find(c => c.id === id);
+    return clip && !clip.uploaded_to_youtube;
+  });
+
+  if (clipsToUpload.length === 0) {
+    alert('Semua clip yang dipilih sudah di-upload');
+    return;
+  }
+
+  if (!confirm(`Upload ${clipsToUpload.length} video ke YouTube?\n\nPastikan OAuth sudah setup.`)) {
+    return;
+  }
+
+  // Create upload queue
+  uploadQueue = new UploadQueue(2); // Max 2 concurrent uploads
+  uploadQueue.addBatch(clipsToUpload);
+
+  // Show progress modal
+  showUploadProgressModal();
+
+  // Start uploading
+  uploadQueue.start();
+
+  // Clear selection
+  deselectAllClips();
+}
+
+// Show upload progress modal
+function showUploadProgressModal() {
+  let modal = document.getElementById('uploadProgressModal');
+  
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'uploadProgressModal';
+    modal.className = 'upload-progress-modal';
+    modal.innerHTML = `
+      <div class="upload-progress-container">
+        <div class="upload-progress-header">
+          <h3>📤 Upload Progress</h3>
+          <button class="close-btn" onclick="closeUploadProgressModal()">✖️</button>
+        </div>
+        <div class="upload-progress-body" id="uploadProgressBody">
+          <!-- Progress items will be added here -->
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Close modal on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeUploadProgressModal();
+      }
+    });
+  }
+
+  modal.classList.remove('hide');
+  updateUploadProgressUI();
+}
+
+// Close upload progress modal
+function closeUploadProgressModal() {
+  const modal = document.getElementById('uploadProgressModal');
+  if (modal) {
+    modal.classList.add('hide');
+  }
+}
+
+// Update upload progress UI
+function updateUploadProgressUI() {
+  const body = document.getElementById('uploadProgressBody');
+  if (!body || !uploadQueue) return;
+
+  const stats = uploadQueue.getStats();
+  let html = '';
+
+  // Summary stats box
+  if (stats.total > 0) {
+    html = `
+      <div class="upload-summary">
+        <div class="upload-summary-title">📊 Summary</div>
+        <div class="upload-summary-stats">
+          <div class="upload-summary-stat queued">
+            <span>⏳</span>
+            <span>Queued: ${stats.queued}</span>
+          </div>
+          <div class="upload-summary-stat uploading">
+            <span>📤</span>
+            <span>Uploading: ${stats.uploading}</span>
+          </div>
+          <div class="upload-summary-stat completed">
+            <span>✅</span>
+            <span>Done: ${stats.completed}</span>
+          </div>
+          <div class="upload-summary-stat failed">
+            <span>❌</span>
+            <span>Failed: ${stats.failed}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Show queued items
+  uploadQueue.queue.forEach(item => {
+    html += createUploadItemHTML(item.id, item.clip, 'queued', 0);
+  });
+
+  // Show uploading items
+  uploadQueue.uploading.forEach((state, clipId) => {
+    html += createUploadItemHTML(clipId, state.clip, state.status, state.progress, state.error);
+  });
+
+  // Show completed items
+  uploadQueue.completed.forEach(item => {
+    html += createUploadItemHTML(item.id, item.clip, 'completed', 100, null, item.url);
+  });
+
+  // Show failed items
+  uploadQueue.failed.forEach(item => {
+    html += createUploadItemHTML(item.id, item.clip, 'failed', 0, item.error);
+  });
+
+  body.innerHTML = html || '<div style="padding: 3rem; text-align: center; color: var(--muted); font-size: 1.1rem;">🎬 Tidak ada upload yang sedang berjalan</div>';
+}
+
+// Create upload item HTML
+function createUploadItemHTML(clipId, clip, status, progress, error, url) {
+  const icons = {
+    queued: '⏳',
+    uploading: '📤',
+    completed: '✅',
+    failed: '❌'
+  };
+
+  const statusText = {
+    queued: 'Menunggu...',
+    uploading: `Uploading... ${Math.round(progress)}%`,
+    completed: 'Upload berhasil!',
+    failed: 'Upload gagal'
+  };
+
+  return `
+    <div class="upload-item ${status}">
+      <div class="upload-item-header">
+        <div class="upload-item-icon">${icons[status]}</div>
+        <div class="upload-item-info">
+          <div class="upload-item-title">${escapeHtml(clip.title || 'Untitled')}</div>
+          <div class="upload-item-status">${statusText[status]}</div>
+        </div>
+      </div>
+      ${status === 'uploading' || status === 'completed' ? `
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: ${progress}%"></div>
+        </div>
+      ` : ''}
+      ${error ? `<div class="upload-item-error">⚠️ ${escapeHtml(error)}</div>` : ''}
+      ${url ? `
+        <div class="upload-item-actions">
+          <a href="${url}" target="_blank" class="btn">🔗 Buka Video</a>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// Enhanced upload progress/status display
+function showUploadProgress(message, type = 'info', url = null) {
+  // For now, use enhanced alert
+  // type can be: 'info', 'success', 'error'
+  
+  if (type === 'success' && url) {
+    // Show success with option to open URL
+    if (confirm(message)) {
+      window.open(url, '_blank');
+    }
+  } else if (type === 'error') {
+    alert(message);
+  } else {
+    // Info message (uploading...)
+    // For uploading state, we just update button, no alert needed
+    console.log(message);
   }
 }
 

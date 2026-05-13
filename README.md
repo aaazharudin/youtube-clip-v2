@@ -21,6 +21,16 @@ Web application untuk mengambil momen paling menarik dari video YouTube mengguna
 - **Multiple Output Ratios** - 9:16, 1:1, 16:9, atau original
 - **No API Key Required** - Langsung bekerja tanpa setup YouTube API
 
+### 🚀 NEW: Auto Upload
+
+- **YouTube Shorts Upload** - Auto upload ke YouTube setelah clip jadi
+- **Manual Upload dari Gallery** - Pilih clip mana yang mau di-upload
+- **TikTok Upload** - Coming soon
+- **OAuth Integration** - Secure authentication dengan Google
+- **Background Upload** - Non-blocking, upload berjalan di background
+- **Upload Tracking** - Status dan URL per clip
+- **See:** [AUTO_UPLOAD_GUIDE.md](AUTO_UPLOAD_GUIDE.md) | [GALLERY_UPLOAD_GUIDE.md](GALLERY_UPLOAD_GUIDE.md)
+
 ### Advanced Features
 
 - **3 Crop Modes**:
@@ -43,6 +53,11 @@ Web application untuk mengambil momen paling menarik dari video YouTube mengguna
 - **Custom Range** - Tentukan start/end manual
 - **Real-time Progress** - Track status setiap klip
 - **Font Options** - Plus Jakarta Sans, Roboto, Montserrat, Arial, atau Custom
+- **📬 Gallery** - Kelola semua clip yang sudah dibuat
+  - Preview video dengan player interaktif
+  - Edit title, delete clip
+  - **Manual upload ke YouTube** dari Gallery
+  - Filter by tags, search, dan sorting
 
 ## Cara Pakai (Docker)
 

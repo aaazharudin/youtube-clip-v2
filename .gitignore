@@ -63,3 +63,10 @@ debug_*.py
 
 # Environment variables (API keys, secrets)
 .env
+
+# YouTube/TikTok OAuth tokens and credentials
+data/youtube_credentials.json
+data/youtube_token.pickle
+data/tiktok_session.json
+data/*.pickle
+data/*.json

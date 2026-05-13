@@ -270,7 +270,7 @@ Hanya output judulnya saja, tanpa penjelasan tambahan."""
 
         # Templates organized by category
         viral_templates = [
-            f"Gak nyangka {random.choice(keywords) bisa segininya... 🤯",
+            f"Gak nyangka {random.choice(keywords)} bisa segininya... 🤯",
             f"Momen {random.choice(keywords)} yang NGGAKAK banget nih... 😂🔥",
             f"{duration} detik yang bikin {random.choice(keywords)} viral... 🔥",
             f"Fase童 {random.choice(keywords)} bikin MERINDING... 😱",

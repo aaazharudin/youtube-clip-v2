@@ -376,6 +376,14 @@ function readPayload() {
     }
   }
 
+  // Get upload settings
+  const uploadEnabled = $("upload_enabled")?.checked || false;
+  const uploadPlatforms = [];
+  if (uploadEnabled) {
+    if ($("platform_youtube")?.checked) uploadPlatforms.push("youtube");
+    if ($("platform_tiktok")?.checked) uploadPlatforms.push("tiktok");
+  }
+
   return {
     url: $("url").value,
     mode: $("mode").value,
@@ -392,6 +400,8 @@ function readPayload() {
     end: $("end").value || "",
     title_mode: titleMode,
     custom_titles: customTitles,
+    upload_enabled: uploadEnabled,
+    upload_platforms: uploadPlatforms,
   };
 }
 
@@ -728,8 +738,17 @@ function toggleTitleMode() {
   }
 }
 
+function toggleUpload() {
+  const uploadEnabled = $("upload_enabled")?.checked || false;
+  const platformsWrap = $("uploadPlatformsWrap");
+  if (platformsWrap) {
+    platformsWrap.classList.toggle("hide", !uploadEnabled);
+  }
+}
+
 $("mode").addEventListener("change", toggleMode);
 $("subtitle_font_select").addEventListener("change", toggleFont);
+$("upload_enabled")?.addEventListener("change", toggleUpload);
 
 // Title mode toggle listeners
 document.querySelectorAll('input[name="title_mode"]').forEach(radio => {
@@ -755,4 +774,5 @@ applyI18n();
 toggleMode();
 toggleFont();
 toggleTitleMode();
+toggleUpload();
 renderSegments([]);
